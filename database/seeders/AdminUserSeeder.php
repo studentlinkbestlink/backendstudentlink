@@ -55,8 +55,30 @@ class AdminUserSeeder extends Seeder
             ]
         ]);
 
+        // Create specific users from your local development
+        User::create([
+            'name' => 'BSIT Department Head',
+            'email' => 'bsit@bcp.edu.ph',
+            'password' => Hash::make('department2025'),
+            'role' => 'department_head',
+            'department_id' => 1, // IT Department
+            'employee_id' => 'BSIT-001',
+            'phone' => '09171234567',
+            'is_active' => true,
+            'preferences' => [
+                'theme' => 'light',
+                'language' => 'en',
+                'notifications' => [
+                    'email' => true,
+                    'push' => true,
+                    'sms' => false
+                ]
+            ]
+        ]);
+
         $this->command->info('✅ Created admin and test users!');
         $this->command->info('📧 Admin: admin@bcp.edu.ph / admin123');
         $this->command->info('📧 Staff: staff@bcp.edu.ph / staff123');
+        $this->command->info('📧 BSIT Head: bsit@bcp.edu.ph / department2025');
     }
 }
