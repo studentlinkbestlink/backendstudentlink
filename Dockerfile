@@ -35,7 +35,9 @@ RUN echo "APP_NAME=StudentLink" > .env && \
     echo "APP_ENV=production" >> .env && \
     echo "APP_KEY=base64:$(openssl rand -base64 32)" >> .env && \
     echo "APP_DEBUG=false" >> .env && \
-    echo "APP_URL=https://backendstudentlink.onrender.com" >> .env
+    echo "APP_URL=https://backendstudentlink.onrender.com" >> .env && \
+    echo "LOG_CHANNEL=syslog" >> .env && \
+    echo "LOG_LEVEL=error" >> .env
 
 # Create storage directories with proper permissions
 RUN mkdir -p /var/www/html/storage/logs \
