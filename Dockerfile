@@ -23,12 +23,16 @@ WORKDIR /var/www/html
 RUN composer create-project laravel/laravel temp-laravel --prefer-dist --no-dev
 RUN cp -r temp-laravel/* . && rm -rf temp-laravel
 
+# Install additional required packages
+RUN composer require tymon/jwt-auth:^2.0 --no-dev --ignore-platform-reqs
+
 # Copy only essential application files
 COPY app/ app/
 COPY config/ config/
 COPY routes/ routes/
 COPY database/ database/
 COPY public/ public/
+COPY fix-permissions.php ./
 
 # Create a basic .env file
 RUN echo "APP_NAME=StudentLink" > .env && \
