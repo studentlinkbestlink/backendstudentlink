@@ -19,28 +19,17 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy composer files
-COPY composer.json ./
+# Create a minimal Laravel app structure
+RUN composer create-project laravel/laravel temp-laravel --prefer-dist --no-dev
+RUN cp -r temp-laravel/* . && rm -rf temp-laravel
 
-# Install only essential Laravel dependencies (skip problematic packages)
-RUN composer require --no-dev --ignore-platform-reqs \
-    laravel/framework:^10.48 \
-    laravel/sanctum:^3.3 \
-    vlucas/phpdotenv:^5.5 \
-    symfony/console:^6.4 \
-    symfony/http-foundation:^6.4 \
-    symfony/http-kernel:^6.4 \
-    symfony/routing:^6.4 \
-    symfony/process:^6.4 \
-    symfony/var-dumper:^6.4 \
-    monolog/monolog:^3.4 \
-    nesbot/carbon:^2.71 \
-    ramsey/uuid:^4.7 \
-    guzzlehttp/guzzle:^7.8 \
-    twilio/sdk:^7.0
-
-# Copy application code
-COPY . .
+# Copy only essential application files
+COPY app/ app/
+COPY config/ config/
+COPY routes/ routes/
+COPY database/ database/
+COPY public/ public/
+COPY .env.example .env
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html \
