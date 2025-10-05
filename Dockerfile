@@ -24,7 +24,7 @@ RUN composer create-project laravel/laravel temp-laravel --prefer-dist --no-dev 
 RUN cp -r temp-laravel/* . && rm -rf temp-laravel
 
 # Install JWT package during build - this is critical
-RUN composer require tymon/jwt-auth --no-dev --ignore-platform-reqs --no-interaction
+RUN COMPOSER_ALLOW_SUPERUSER=1 composer require tymon/jwt-auth --ignore-platform-reqs --no-interaction
 
 # Copy only essential application files
 COPY app/ app/
