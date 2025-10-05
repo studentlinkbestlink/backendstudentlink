@@ -33,7 +33,7 @@ COPY public/ public/
 # Create a basic .env file
 RUN echo "APP_NAME=StudentLink" > .env && \
     echo "APP_ENV=production" >> .env && \
-    echo "APP_KEY=" >> .env && \
+    echo "APP_KEY=base64:$(openssl rand -base64 32)" >> .env && \
     echo "APP_DEBUG=false" >> .env && \
     echo "APP_URL=https://backendstudentlink.onrender.com" >> .env
 
@@ -46,8 +46,7 @@ RUN chown -R www-data:www-data /var/www/html \
 RUN a2enmod rewrite
 COPY .docker/apache-config.conf /etc/apache2/sites-available/000-default.conf
 
-# Generate application key (will be overridden by environment variables)
-RUN php artisan key:generate --force
+# Application key will be set via environment variables in Render
 
 # Expose port
 EXPOSE 80
