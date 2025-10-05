@@ -19,16 +19,11 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy composer files
-COPY composer.json ./
+# Copy all files
+COPY . .
 
 # Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader --no-scripts --ignore-platform-reqs || \
-    (echo "Composer install failed, trying with different flags..." && \
-     composer install --no-dev --ignore-platform-reqs --no-interaction)
-
-# Copy application code
-COPY . .
+RUN composer install --no-dev --optimize-autoloader --no-scripts --ignore-platform-reqs
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html \
