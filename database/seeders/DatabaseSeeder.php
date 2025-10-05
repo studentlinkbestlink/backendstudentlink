@@ -16,6 +16,8 @@ class DatabaseSeeder extends Seeder
             AdminUserSeeder::class,
             // Create departments
             DepartmentSeeder::class,
+            // Create local development users (department heads)
+            LocalUsersSeeder::class,
             // Then create staff
             StaffSeeder::class,
             // Create realistic staff data
