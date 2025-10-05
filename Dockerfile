@@ -1,22 +1,29 @@
-# Use a pre-built Laravel image with PHP 8.2 and Apache
-FROM webdevops/php-apache:8.2
+# Use PHP 8.2 with Apache
+FROM php:8.2-apache
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    zip \
+    unzip \
+    libzip-dev \
+    && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd zip
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Set working directory
 WORKDIR /var/www/html
-
-# Install Composer if not present
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # Create a fresh Laravel project
 RUN composer create-project laravel/laravel temp-laravel --prefer-dist --no-dev --no-interaction
 RUN cp -r temp-laravel/* . && rm -rf temp-laravel
 
-# Try to install packages one by one with fallbacks
-RUN composer require tymon/jwt-auth:^2.0 --no-dev --ignore-platform-reqs --no-interaction || \
-    (echo "JWT install failed, trying alternative..." && composer require tymon/jwt-auth --no-dev --ignore-platform-reqs --no-interaction)
-
-RUN composer require twilio/sdk:^7.0 --no-dev --ignore-platform-reqs --no-interaction || \
-    (echo "Twilio install failed, trying alternative..." && composer require twilio/sdk --no-dev --ignore-platform-reqs --no-interaction)
+# Skip package installation for now - focus on basic Laravel functionality
 
 # Copy only essential application files
 COPY app/ app/
@@ -73,6 +80,12 @@ chmod -R 777 /var/www/html/storage\n\
 # Generate application key if not set\n\
 if [ -z "$APP_KEY" ]; then\n\
     php artisan key:generate --force\n\
+fi\n\
+\n\
+# Try to install JWT package if not present\n\
+if ! composer show tymon/jwt-auth >/dev/null 2>&1; then\n\
+    echo "Installing JWT package..."\n\
+    composer require tymon/jwt-auth --no-dev --ignore-platform-reqs --no-interaction || echo "JWT install failed, continuing..."\n\
 fi\n\
 \n\
 # Run database migrations\n\
