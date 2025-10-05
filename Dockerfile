@@ -37,16 +37,17 @@ RUN echo "APP_NAME=StudentLink" > .env && \
     echo "APP_DEBUG=false" >> .env && \
     echo "APP_URL=https://backendstudentlink.onrender.com" >> .env
 
-# Set permissions
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 775 /var/www/html/storage \
-    && chmod -R 775 /var/www/html/bootstrap/cache \
-    && mkdir -p /var/www/html/storage/logs \
+# Create storage directories with proper permissions
+RUN mkdir -p /var/www/html/storage/logs \
     && mkdir -p /var/www/html/storage/framework/cache \
     && mkdir -p /var/www/html/storage/framework/sessions \
     && mkdir -p /var/www/html/storage/framework/views \
-    && chown -R www-data:www-data /var/www/html/storage \
-    && chmod -R 775 /var/www/html/storage
+    && mkdir -p /var/www/html/storage/app/public \
+    && chown -R www-data:www-data /var/www/html \
+    && chmod -R 775 /var/www/html/storage \
+    && chmod -R 775 /var/www/html/bootstrap/cache \
+    && chmod -R 777 /var/www/html/storage/logs \
+    && chmod -R 777 /var/www/html/storage/framework
 
 # Configure Apache
 RUN a2enmod rewrite
@@ -56,9 +57,17 @@ COPY .docker/apache-config.conf /etc/apache2/sites-available/000-default.conf
 
 # Create startup script
 RUN echo '#!/bin/bash\n\
-# Set proper permissions\n\
-chown -R www-data:www-data /var/www/html/storage\n\
-chmod -R 775 /var/www/html/storage\n\
+# Set proper permissions aggressively\n\
+chown -R www-data:www-data /var/www/html\n\
+chmod -R 777 /var/www/html/storage\n\
+chmod -R 777 /var/www/html/bootstrap/cache\n\
+\n\
+# Ensure storage directories exist\n\
+mkdir -p /var/www/html/storage/logs\n\
+mkdir -p /var/www/html/storage/framework/cache\n\
+mkdir -p /var/www/html/storage/framework/sessions\n\
+mkdir -p /var/www/html/storage/framework/views\n\
+chmod -R 777 /var/www/html/storage\n\
 \n\
 # Generate application key if not set\n\
 if [ -z "$APP_KEY" ]; then\n\
