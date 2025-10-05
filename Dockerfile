@@ -1,34 +1,22 @@
-# Use PHP 8.2 with Apache
-FROM php:8.2-apache
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    git \
-    curl \
-    libpng-dev \
-    libonig-dev \
-    libxml2-dev \
-    zip \
-    unzip \
-    libzip-dev \
-    && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd zip
-
-# Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# Use a pre-built Laravel image with PHP 8.2 and Apache
+FROM webdevops/php-apache:8.2
 
 # Set working directory
 WORKDIR /var/www/html
 
-# Create a minimal Laravel app structure
-RUN composer create-project laravel/laravel temp-laravel --prefer-dist --no-dev
+# Install Composer if not present
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Create a fresh Laravel project
+RUN composer create-project laravel/laravel temp-laravel --prefer-dist --no-dev --no-interaction
 RUN cp -r temp-laravel/* . && rm -rf temp-laravel
 
-# Install only essential packages for production
-RUN composer require --no-dev --ignore-platform-reqs --no-interaction \
-    tymon/jwt-auth:^2.0 \
-    twilio/sdk:^7.0 \
-    kreait/firebase-php:^6.9 \
-    firebase/php-jwt:^6.8
+# Try to install packages one by one with fallbacks
+RUN composer require tymon/jwt-auth:^2.0 --no-dev --ignore-platform-reqs --no-interaction || \
+    (echo "JWT install failed, trying alternative..." && composer require tymon/jwt-auth --no-dev --ignore-platform-reqs --no-interaction)
+
+RUN composer require twilio/sdk:^7.0 --no-dev --ignore-platform-reqs --no-interaction || \
+    (echo "Twilio install failed, trying alternative..." && composer require twilio/sdk --no-dev --ignore-platform-reqs --no-interaction)
 
 # Copy only essential application files
 COPY app/ app/
