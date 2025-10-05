@@ -1,44 +1,31 @@
-# Use PHP 8.2 with Apache
-FROM php:8.2-apache
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    git \
-    curl \
-    libpng-dev \
-    libonig-dev \
-    libxml2-dev \
-    zip \
-    unzip \
-    libzip-dev \
-    && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd zip
-
-# Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# Use a pre-built Laravel image
+FROM webdevops/php-apache:8.2
 
 # Set working directory
-WORKDIR /var/www/html
+WORKDIR /app
 
-# Copy all files
+# Install Composer if not present
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Copy composer files first
+COPY composer.json composer.lock* ./
+
+# Install dependencies with minimal flags
+RUN composer install --no-dev --no-scripts --ignore-platform-reqs --no-interaction
+
+# Copy application code
 COPY . .
 
-# Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader --no-scripts --ignore-platform-reqs
-
 # Set permissions
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html/storage \
-    && chmod -R 755 /var/www/html/bootstrap/cache
+RUN chown -R www-data:www-data /app \
+    && chmod -R 755 /app/storage \
+    && chmod -R 755 /app/bootstrap/cache
 
-# Configure Apache
-RUN a2enmod rewrite
-COPY .docker/apache-config.conf /etc/apache2/sites-available/000-default.conf
+# Configure Apache document root
+ENV WEB_DOCUMENT_ROOT=/app/public
 
 # Generate application key (will be overridden by environment variables)
 RUN php artisan key:generate --force
 
 # Expose port
 EXPOSE 80
-
-# Start Apache
-CMD ["apache2-foreground"]
