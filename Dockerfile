@@ -48,5 +48,24 @@ COPY .docker/apache-config.conf /etc/apache2/sites-available/000-default.conf
 
 # Application key will be set via environment variables in Render
 
+# Create startup script
+RUN echo '#!/bin/bash\n\
+# Generate application key if not set\n\
+if [ -z "$APP_KEY" ]; then\n\
+    php artisan key:generate --force\n\
+fi\n\
+\n\
+# Run database migrations\n\
+php artisan migrate --force\n\
+\n\
+# Run database seeders\n\
+php artisan db:seed --force\n\
+\n\
+# Start Apache\n\
+apache2-foreground' > /usr/local/bin/start.sh && chmod +x /usr/local/bin/start.sh
+
 # Expose port
 EXPOSE 80
+
+# Start with our custom script
+CMD ["/usr/local/bin/start.sh"]
