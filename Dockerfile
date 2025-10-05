@@ -23,11 +23,12 @@ WORKDIR /var/www/html
 RUN composer create-project laravel/laravel temp-laravel --prefer-dist --no-dev
 RUN cp -r temp-laravel/* . && rm -rf temp-laravel
 
-# Copy composer files first
-COPY composer.json composer.lock* ./
-
-# Install dependencies including JWT
-RUN composer install --no-dev --ignore-platform-reqs --no-interaction
+# Install only essential packages for production
+RUN composer require --no-dev --ignore-platform-reqs --no-interaction \
+    tymon/jwt-auth:^2.0 \
+    twilio/sdk:^7.0 \
+    kreait/firebase-php:^6.9 \
+    firebase/php-jwt:^6.8
 
 # Copy only essential application files
 COPY app/ app/
