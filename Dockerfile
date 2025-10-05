@@ -29,7 +29,13 @@ COPY config/ config/
 COPY routes/ routes/
 COPY database/ database/
 COPY public/ public/
-COPY .env.example .env
+
+# Create a basic .env file
+RUN echo "APP_NAME=StudentLink" > .env && \
+    echo "APP_ENV=production" >> .env && \
+    echo "APP_KEY=" >> .env && \
+    echo "APP_DEBUG=false" >> .env && \
+    echo "APP_URL=https://backendstudentlink.onrender.com" >> .env
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html \
