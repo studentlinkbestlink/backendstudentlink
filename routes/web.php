@@ -20,3 +20,8 @@ Route::get('/', function () {
         'status' => 'active'
     ]);
 });
+
+// Health check endpoint for Render
+Route::get('/healthz', function () {
+    return response('OK', 200);
+});
