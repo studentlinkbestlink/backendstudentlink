@@ -23,7 +23,9 @@ WORKDIR /var/www/html
 COPY composer.json ./
 
 # Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader --no-scripts
+RUN composer install --no-dev --optimize-autoloader --no-scripts --ignore-platform-reqs || \
+    (echo "Composer install failed, trying with different flags..." && \
+     composer install --no-dev --ignore-platform-reqs --no-interaction)
 
 # Copy application code
 COPY . .
