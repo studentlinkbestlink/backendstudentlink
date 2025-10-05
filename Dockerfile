@@ -42,17 +42,19 @@ RUN echo "APP_NAME=StudentLink" > .env && \
     echo "LOG_CHANNEL=syslog" >> .env && \
     echo "LOG_LEVEL=error" >> .env
 
-# Create storage directories with proper permissions
+# Create storage directories with proper permissions - AGGRESSIVE APPROACH
 RUN mkdir -p /var/www/html/storage/logs \
     && mkdir -p /var/www/html/storage/framework/cache \
     && mkdir -p /var/www/html/storage/framework/sessions \
     && mkdir -p /var/www/html/storage/framework/views \
     && mkdir -p /var/www/html/storage/app/public \
     && chown -R www-data:www-data /var/www/html \
-    && chmod -R 775 /var/www/html/storage \
-    && chmod -R 775 /var/www/html/bootstrap/cache \
+    && chmod -R 777 /var/www/html/storage \
+    && chmod -R 777 /var/www/html/bootstrap/cache \
     && chmod -R 777 /var/www/html/storage/logs \
-    && chmod -R 777 /var/www/html/storage/framework
+    && chmod -R 777 /var/www/html/storage/framework \
+    && chmod -R 777 /var/www/html/storage/app \
+    && chmod -R 777 /var/www/html/storage/app/public
 
 # Configure Apache
 RUN a2enmod rewrite
@@ -60,39 +62,55 @@ COPY .docker/apache-config.conf /etc/apache2/sites-available/000-default.conf
 
 # Application key will be set via environment variables in Render
 
-# Create startup script
+# Create comprehensive startup script
 RUN echo '#!/bin/bash\n\
-# Fix permissions first\n\
-php /var/www/html/fix-permissions.php\n\
+set -e\n\
+echo "🚀 Starting StudentLink Backend..."\n\
 \n\
-# Set proper permissions aggressively\n\
+# Step 1: Fix permissions COMPLETELY\n\
+echo "📁 Setting up storage permissions..."\n\
 chown -R www-data:www-data /var/www/html\n\
 chmod -R 777 /var/www/html/storage\n\
 chmod -R 777 /var/www/html/bootstrap/cache\n\
+chmod -R 777 /var/www/html/storage/logs\n\
+chmod -R 777 /var/www/html/storage/framework\n\
+chmod -R 777 /var/www/html/storage/app\n\
 \n\
-# Ensure storage directories exist\n\
+# Step 2: Ensure all directories exist\n\
+echo "📂 Creating storage directories..."\n\
 mkdir -p /var/www/html/storage/logs\n\
 mkdir -p /var/www/html/storage/framework/cache\n\
 mkdir -p /var/www/html/storage/framework/sessions\n\
 mkdir -p /var/www/html/storage/framework/views\n\
+mkdir -p /var/www/html/storage/app/public\n\
 chmod -R 777 /var/www/html/storage\n\
 \n\
-# Generate application key if not set\n\
+# Step 3: Generate application key\n\
+echo "🔑 Generating application key..."\n\
 if [ -z "$APP_KEY" ]; then\n\
     php artisan key:generate --force\n\
 fi\n\
 \n\
-# Try to install JWT package if not present\n\
+# Step 4: Install JWT package\n\
+echo "📦 Installing JWT package..."\n\
 if ! composer show tymon/jwt-auth >/dev/null 2>&1; then\n\
-    echo "Installing JWT package..."\n\
-    composer require tymon/jwt-auth --no-dev --ignore-platform-reqs --no-interaction || echo "JWT install failed, continuing..."\n\
+    composer require tymon/jwt-auth --no-dev --ignore-platform-reqs --no-interaction || echo "⚠️ JWT install failed, continuing..."\n\
 fi\n\
 \n\
-# Run database migrations\n\
+# Step 5: Run database migrations\n\
+echo "🗄️ Running database migrations..."\n\
 php artisan migrate --force\n\
 \n\
-# Run database seeders\n\
+# Step 6: Run database seeders\n\
+echo "🌱 Running database seeders..."\n\
 php artisan db:seed --force\n\
+\n\
+# Step 7: Final permission check\n\
+echo "✅ Final permission check..."\n\
+chmod -R 777 /var/www/html/storage\n\
+chmod -R 777 /var/www/html/bootstrap/cache\n\
+\n\
+echo "🎉 Backend setup complete! Starting Apache..."\n\
 \n\
 # Start Apache\n\
 apache2-foreground' > /usr/local/bin/start.sh && chmod +x /usr/local/bin/start.sh
