@@ -27,4 +27,13 @@ class Handler extends ExceptionHandler
             //
         });
     }
+
+    /**
+     * Override report method to disable logging completely
+     */
+    public function report(Throwable $e)
+    {
+        // Do nothing - disable all logging to avoid storage permission issues
+        return;
+    }
 }

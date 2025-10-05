@@ -59,6 +59,9 @@ COPY .docker/apache-config.conf /etc/apache2/sites-available/000-default.conf
 
 # Create startup script
 RUN echo '#!/bin/bash\n\
+# Fix permissions first\n\
+php /var/www/html/fix-permissions.php\n\
+\n\
 # Set proper permissions aggressively\n\
 chown -R www-data:www-data /var/www/html\n\
 chmod -R 777 /var/www/html/storage\n\
