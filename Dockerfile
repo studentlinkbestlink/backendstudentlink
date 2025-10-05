@@ -23,7 +23,8 @@ WORKDIR /var/www/html
 RUN composer create-project laravel/laravel temp-laravel --prefer-dist --no-dev --no-interaction
 RUN cp -r temp-laravel/* . && rm -rf temp-laravel
 
-# Skip package installation for now - focus on basic Laravel functionality
+# Install JWT package during build - this is critical
+RUN composer require tymon/jwt-auth --no-dev --ignore-platform-reqs --no-interaction
 
 # Copy only essential application files
 COPY app/ app/
@@ -91,10 +92,12 @@ if [ -z "$APP_KEY" ]; then\n\
     php artisan key:generate --force\n\
 fi\n\
 \n\
-# Step 4: Install JWT package\n\
-echo "📦 Installing JWT package..."\n\
-if ! composer show tymon/jwt-auth >/dev/null 2>&1; then\n\
-    composer require tymon/jwt-auth --no-dev --ignore-platform-reqs --no-interaction || echo "⚠️ JWT install failed, continuing..."\n\
+# Step 4: Verify JWT package\n\
+echo "📦 Verifying JWT package..."\n\
+if composer show tymon/jwt-auth >/dev/null 2>&1; then\n\
+    echo "  ✅ JWT package is installed"\n\
+else\n\
+    echo "  ❌ JWT package is missing - this will cause errors"\n\
 fi\n\
 \n\
 # Step 5: Run database migrations\n\
