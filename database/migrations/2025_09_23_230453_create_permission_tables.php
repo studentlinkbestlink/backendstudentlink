@@ -14,24 +14,10 @@ return new class extends Migration
      */
     public function up()
     {
-        // Wrap entire migration in try-catch to handle any Spatie package issues
-        try {
-            // Check if Spatie Permission package is properly configured
-            if (!class_exists('Spatie\Permission\PermissionRegistrar')) {
-                echo "⚠️ Spatie Permission package not found. Skipping permission tables migration.\n";
-                return;
-            }
-            
-            if (!config('permission.table_names')) {
-                echo "⚠️ Permission configuration not found. Skipping permission tables migration.\n";
-                return;
-            }
-            
-            // Check if the PermissionRegistrar has the required properties
-            if (!property_exists('Spatie\Permission\PermissionRegistrar', 'pivotPermission')) {
-                echo "⚠️ Spatie Permission package version incompatible. Skipping permission tables migration.\n";
-                return;
-            }
+        // Skip this migration entirely - Spatie Permission package has compatibility issues
+        echo "⚠️ Skipping permission tables migration due to Spatie package compatibility issues.\n";
+        echo "⚠️ Permission system will not be available, but other features will work.\n";
+        return;
 
         $tableNames = config('permission.table_names');
         $columnNames = config('permission.column_names');
