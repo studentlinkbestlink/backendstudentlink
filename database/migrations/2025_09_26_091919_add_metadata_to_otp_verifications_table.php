@@ -11,8 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Check if otp_verifications table exists before trying to modify it
+        if (!Schema::hasTable('otp_verifications')) {
+            echo "⚠️ OTP verifications table does not exist. Skipping metadata migration.\n";
+            return;
+        }
+
         Schema::table('otp_verifications', function (Blueprint $table) {
-            $table->json('metadata')->nullable()->after('failed_attempts');
+            if (!Schema::hasColumn('otp_verifications', 'metadata')) {
+                $table->json('metadata')->nullable()->after('failed_attempts');
+            }
         });
     }
 
