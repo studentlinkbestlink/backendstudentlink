@@ -11,6 +11,22 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Check if required tables exist before creating cross_department_assignments with foreign keys
+        if (!Schema::hasTable('concerns')) {
+            echo "⚠️ Concerns table does not exist. Skipping cross department assignments migration.\n";
+            return;
+        }
+        
+        if (!Schema::hasTable('users')) {
+            echo "⚠️ Users table does not exist. Skipping cross department assignments migration.\n";
+            return;
+        }
+        
+        if (!Schema::hasTable('departments')) {
+            echo "⚠️ Departments table does not exist. Skipping cross department assignments migration.\n";
+            return;
+        }
+
         Schema::create('cross_department_assignments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('concern_id')->constrained()->onDelete('cascade');
