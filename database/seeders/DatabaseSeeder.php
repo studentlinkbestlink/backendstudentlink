@@ -12,10 +12,10 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            // Create admin and test users first
-            AdminUserSeeder::class,
-            // Create departments
+            // Create departments first (required for users with department_id)
             DepartmentSeeder::class,
+            // Create admin and test users
+            AdminUserSeeder::class,
             // Create local development users (department heads)
             LocalUsersSeeder::class,
             // Then create staff

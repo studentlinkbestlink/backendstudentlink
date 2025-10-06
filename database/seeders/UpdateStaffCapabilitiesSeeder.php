@@ -12,6 +12,16 @@ class UpdateStaffCapabilitiesSeeder extends Seeder
      */
     public function run(): void
     {
+        // Check if we have any staff to update
+        $staffCount = \App\Models\User::where('role', 'staff')->count();
+        
+        if ($staffCount === 0) {
+            $this->command->info('No staff found. Skipping staff capabilities update.');
+            return;
+        }
+
+        $this->command->info("Found {$staffCount} staff members. Updating capabilities...");
+
         // Update existing staff with cross-department capabilities and titles
         $staffUpdates = [
             // IT Department Staff (can handle cross-department)
@@ -117,6 +127,9 @@ class UpdateStaffCapabilitiesSeeder extends Seeder
             ],
         ];
 
+        $updatedCount = 0;
+        $notFoundCount = 0;
+
         foreach ($staffUpdates as $update) {
             $staff = User::where('email', $update['email'])->first();
             if ($staff) {
@@ -124,21 +137,27 @@ class UpdateStaffCapabilitiesSeeder extends Seeder
                     'can_handle_cross_department' => $update['can_handle_cross_department'],
                     'title' => $update['title']
                 ]);
-                echo "Updated staff: {$staff->name} - {$update['title']} (Cross-department: " . 
-                     ($update['can_handle_cross_department'] ? 'Yes' : 'No') . ")\n";
+                $this->command->info("Updated staff: {$staff->name} - {$update['title']} (Cross-department: " . 
+                     ($update['can_handle_cross_department'] ? 'Yes' : 'No') . ")");
+                $updatedCount++;
             } else {
-                echo "Staff not found: {$update['email']}\n";
+                $this->command->warn("Staff not found: {$update['email']}");
+                $notFoundCount++;
             }
         }
 
+        $this->command->info("Staff capabilities update completed: {$updatedCount} updated, {$notFoundCount} not found");
+
         // Update any remaining staff with default values
-        User::where('role', 'staff')
+        $defaultUpdated = User::where('role', 'staff')
             ->whereNull('can_handle_cross_department')
             ->update([
                 'can_handle_cross_department' => false,
                 'title' => 'Staff Member'
             ]);
 
-        echo "Staff capabilities update completed!\n";
+        if ($defaultUpdated > 0) {
+            $this->command->info("Set default values for {$defaultUpdated} staff members");
+        }
     }
 }

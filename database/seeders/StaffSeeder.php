@@ -22,6 +22,8 @@ class StaffSeeder extends Seeder
             return;
         }
 
+        $this->command->info("Found {$departments->count()} departments for staff creation.");
+
         $this->command->info('Creating 10 staff members for each department...');
 
         foreach ($departments as $department) {

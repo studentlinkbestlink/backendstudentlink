@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Schema;
 
 class Department extends Model
 {
@@ -47,6 +48,11 @@ class Department extends Model
      */
     public function concerns(): HasMany
     {
+        // Check if concerns table exists before creating relation
+        if (!Schema::hasTable('concerns')) {
+            // Return a dummy relation that won't cause errors
+            return $this->hasMany(Concern::class)->whereRaw('1 = 0');
+        }
         return $this->hasMany(Concern::class);
     }
 
