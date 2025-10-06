@@ -14,6 +14,22 @@ return new class extends Migration
      */
     public function up()
     {
+        // Check if Spatie Permission package is properly configured
+        try {
+            if (!class_exists('Spatie\Permission\PermissionRegistrar')) {
+                echo "⚠️ Spatie Permission package not found. Skipping permission tables migration.\n";
+                return;
+            }
+            
+            if (!config('permission.table_names')) {
+                echo "⚠️ Permission configuration not found. Skipping permission tables migration.\n";
+                return;
+            }
+        } catch (Exception $e) {
+            echo "⚠️ Error checking Spatie Permission package: " . $e->getMessage() . ". Skipping migration.\n";
+            return;
+        }
+
         $tableNames = config('permission.table_names');
         $columnNames = config('permission.column_names');
         $teams = config('permission.teams');
