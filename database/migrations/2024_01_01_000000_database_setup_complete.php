@@ -62,7 +62,7 @@ return new class extends Migration
                     $table->timestamp('email_verified_at')->nullable();
                     $table->string('password');
                     $table->enum('role', ['student', 'department_head', 'admin'])->default('student');
-                    $table->foreignId('department_id')->nullable()->constrained()->onDelete('set null');
+                    $table->unsignedBigInteger('department_id')->nullable();
                     $table->string('phone')->nullable();
                     $table->string('avatar')->nullable();
                     $table->json('preferences')->nullable();
@@ -79,6 +79,16 @@ return new class extends Migration
                     $table->index(['is_active', 'role']);
                 });
                 echo "   ✅ Created table: users\n";
+                
+                // Add foreign key constraint only if departments table exists
+                if (Schema::hasTable('departments')) {
+                    Schema::table('users', function ($table) {
+                        $table->foreign('department_id')->references('id')->on('departments')->onDelete('set null');
+                    });
+                    echo "   ✅ Added foreign key constraint: users.department_id -> departments.id\n";
+                } else {
+                    echo "   ⚠️ Departments table not found, skipping foreign key constraint\n";
+                }
             } else {
                 echo "   ⚠️ Table 'users' already exists, checking for missing columns...\n";
                 
