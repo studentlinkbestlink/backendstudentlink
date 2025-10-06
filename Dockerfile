@@ -25,7 +25,7 @@ RUN composer create-project laravel/laravel temp-laravel --prefer-dist --no-dev 
 RUN cp -r temp-laravel/* . && rm -rf temp-laravel
 
 # Install only the essential packages we need for migrations
-RUN COMPOSER_ALLOW_SUPERUSER=1 composer require tymon/jwt-auth spatie/laravel-permission twilio/sdk --ignore-platform-reqs --no-interaction
+RUN COMPOSER_ALLOW_SUPERUSER=1 composer require tymon/jwt-auth twilio/sdk --ignore-platform-reqs --no-interaction
 
 # Copy only essential application files
 COPY app/ app/
@@ -93,10 +93,12 @@ if [ -z "$APP_KEY" ]; then\n\
     php artisan key:generate --force\n\
 fi\n\
 \n\
-# Step 4: Verify JWT package\n\
+# Step 4: Verify JWT package and generate secret\n\
 echo "📦 Verifying JWT package..."\n\
 if composer show tymon/jwt-auth >/dev/null 2>&1; then\n\
     echo "  ✅ JWT package is installed"\n\
+    echo "🔑 Generating JWT secret..."\n\
+    php artisan jwt:secret --force\n\
 else\n\
     echo "  ❌ JWT package is missing - this will cause errors"\n\
 fi\n\
