@@ -119,14 +119,11 @@ return new class extends Migration
             $table->primary([PermissionRegistrar::$pivotPermission, PermissionRegistrar::$pivotRole], 'role_has_permissions_permission_id_role_id_primary');
         });
 
+        // This code is unreachable due to early return above
+        // Keeping it for reference but it won't execute
         app('cache')
             ->store(config('permission.cache.store') != 'default' ? config('permission.cache.store') : null)
             ->forget(config('permission.cache.key'));
-            
-        } catch (Exception $e) {
-            echo "⚠️ Error in permission tables migration: " . $e->getMessage() . ". Skipping migration.\n";
-            return;
-        }
     }
 
     /**
