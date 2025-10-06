@@ -14,8 +14,9 @@ return new class extends Migration
      */
     public function up()
     {
-        // Check if Spatie Permission package is properly configured
+        // Wrap entire migration in try-catch to handle any Spatie package issues
         try {
+            // Check if Spatie Permission package is properly configured
             if (!class_exists('Spatie\Permission\PermissionRegistrar')) {
                 echo "⚠️ Spatie Permission package not found. Skipping permission tables migration.\n";
                 return;
@@ -25,10 +26,12 @@ return new class extends Migration
                 echo "⚠️ Permission configuration not found. Skipping permission tables migration.\n";
                 return;
             }
-        } catch (Exception $e) {
-            echo "⚠️ Error checking Spatie Permission package: " . $e->getMessage() . ". Skipping migration.\n";
-            return;
-        }
+            
+            // Check if the PermissionRegistrar has the required properties
+            if (!property_exists('Spatie\Permission\PermissionRegistrar', 'pivotPermission')) {
+                echo "⚠️ Spatie Permission package version incompatible. Skipping permission tables migration.\n";
+                return;
+            }
 
         $tableNames = config('permission.table_names');
         $columnNames = config('permission.column_names');
@@ -133,6 +136,11 @@ return new class extends Migration
         app('cache')
             ->store(config('permission.cache.store') != 'default' ? config('permission.cache.store') : null)
             ->forget(config('permission.cache.key'));
+            
+        } catch (Exception $e) {
+            echo "⚠️ Error in permission tables migration: " . $e->getMessage() . ". Skipping migration.\n";
+            return;
+        }
     }
 
     /**
