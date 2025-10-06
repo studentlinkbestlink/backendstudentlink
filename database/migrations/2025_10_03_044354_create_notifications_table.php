@@ -11,6 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Check if users table exists before creating notifications with foreign key
+        if (!Schema::hasTable('users')) {
+            echo "⚠️ Users table does not exist. Skipping notifications migration.\n";
+            return;
+        }
+
         Schema::create('notifications', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');

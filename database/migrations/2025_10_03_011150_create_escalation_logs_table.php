@@ -11,6 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Check if required tables exist before creating escalation_logs with foreign keys
+        if (!Schema::hasTable('concerns')) {
+            echo "⚠️ Concerns table does not exist. Skipping escalation logs migration.\n";
+            return;
+        }
+        
+        if (!Schema::hasTable('users')) {
+            echo "⚠️ Users table does not exist. Skipping escalation logs migration.\n";
+            return;
+        }
+
         Schema::create('escalation_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('concern_id')->constrained()->onDelete('cascade');

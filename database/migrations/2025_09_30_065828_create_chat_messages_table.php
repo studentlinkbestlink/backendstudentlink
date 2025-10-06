@@ -11,10 +11,28 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Check if required tables exist before creating chat_messages with foreign keys
+        if (!Schema::hasTable('concerns')) {
+            echo "⚠️ Concerns table does not exist. Skipping chat messages migration.\n";
+            return;
+        }
+        
+        if (!Schema::hasTable('users')) {
+            echo "⚠️ Users table does not exist. Skipping chat messages migration.\n";
+            return;
+        }
+
         Schema::create('chat_messages', function (Blueprint $table) {
             $table->id();
             $table->foreignId('concern_id')->constrained()->onDelete('cascade');
-            $table->foreignId('chat_room_id')->constrained()->onDelete('cascade');
+            
+            // Only add foreign key to chat_rooms if that table exists
+            if (Schema::hasTable('chat_rooms')) {
+                $table->foreignId('chat_room_id')->constrained()->onDelete('cascade');
+            } else {
+                $table->unsignedBigInteger('chat_room_id');
+            }
+            
             $table->foreignId('author_id')->constrained('users')->onDelete('cascade');
             $table->text('message');
             $table->enum('message_type', ['text', 'image', 'file', 'system', 'status_change', 'resolution_confirmation', 'resolution_dispute', 'chat_closure', 'chat_reopened'])->default('text');
@@ -25,7 +43,10 @@ return new class extends Migration
             $table->timestamp('delivered_at')->nullable();
             $table->timestamp('read_at')->nullable();
             $table->json('reactions')->nullable();
-            $table->foreignId('reply_to_id')->nullable()->constrained('chat_messages')->onDelete('set null');
+            
+            // Self-referencing foreign key - will be added after table creation
+            $table->unsignedBigInteger('reply_to_id')->nullable();
+            
             $table->timestamps();
 
             $table->index(['chat_room_id', 'created_at']);
@@ -33,6 +54,13 @@ return new class extends Migration
             $table->index(['author_id', 'created_at']);
             $table->index('message_type');
         });
+        
+        // Add self-referencing foreign key after table creation
+        if (Schema::hasTable('chat_messages')) {
+            Schema::table('chat_messages', function (Blueprint $table) {
+                $table->foreign('reply_to_id')->references('id')->on('chat_messages')->onDelete('set null');
+            });
+        }
     }
 
     /**
