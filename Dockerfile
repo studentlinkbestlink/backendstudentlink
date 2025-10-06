@@ -103,16 +103,13 @@ else\n\
     echo "  ❌ JWT package is missing - this will cause errors"\n\
 fi\n\
 \n\
-# Step 5: Run database migrations (background)\n\
-echo "🗄️ Running database migrations in background..."\n\
-php artisan migrate --force &\n\
+# Step 5: Run database migrations (wait for completion)\n\
+echo "🗄️ Running database migrations..."\n\
+php artisan migrate:fresh --force\n\
 \n\
-# Step 6: Run database seeders (background)\n\
-echo "🌱 Running database seeders in background..."\n\
-php artisan db:seed --force &\n\
-\n\
-# Wait a moment for migrations to start\n\
-sleep 2\n\
+# Step 6: Run database seeders (wait for completion)\n\
+echo "🌱 Running database seeders..."\n\
+php artisan db:seed --force\n\
 \n\
 # Step 7: Final permission check\n\
 echo "✅ Final permission check..."\n\
