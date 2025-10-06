@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -23,9 +24,18 @@ return new class extends Migration
             return;
         }
 
-        Schema::table('concerns', function (Blueprint $table) {
-            $table->enum('status', ['pending', 'approved', 'in_progress', 'resolved', 'student_confirmed', 'closed', 'cancelled'])->change();
-        });
+        // Update status enum (database-agnostic)
+        $driver = DB::getDriverName();
+        
+        if ($driver === 'mysql') {
+            Schema::table('concerns', function (Blueprint $table) {
+                $table->enum('status', ['pending', 'approved', 'in_progress', 'resolved', 'student_confirmed', 'closed', 'cancelled'])->change();
+            });
+        } elseif ($driver === 'pgsql') {
+            // PostgreSQL: Update constraint
+            DB::statement("ALTER TABLE concerns DROP CONSTRAINT IF EXISTS concerns_status_check");
+            DB::statement("ALTER TABLE concerns ADD CONSTRAINT concerns_status_check CHECK (status IN ('pending', 'approved', 'in_progress', 'resolved', 'student_confirmed', 'closed', 'cancelled'))");
+        }
     }
 
     /**
@@ -33,8 +43,17 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('concerns', function (Blueprint $table) {
-            $table->enum('status', ['pending', 'approved', 'in_progress', 'resolved', 'closed', 'cancelled'])->change();
-        });
+        // Revert status enum (database-agnostic)
+        $driver = DB::getDriverName();
+        
+        if ($driver === 'mysql') {
+            Schema::table('concerns', function (Blueprint $table) {
+                $table->enum('status', ['pending', 'approved', 'in_progress', 'resolved', 'closed', 'cancelled'])->change();
+            });
+        } elseif ($driver === 'pgsql') {
+            // PostgreSQL: Update constraint
+            DB::statement("ALTER TABLE concerns DROP CONSTRAINT IF EXISTS concerns_status_check");
+            DB::statement("ALTER TABLE concerns ADD CONSTRAINT concerns_status_check CHECK (status IN ('pending', 'approved', 'in_progress', 'resolved', 'closed', 'cancelled'))");
+        }
     }
 };
