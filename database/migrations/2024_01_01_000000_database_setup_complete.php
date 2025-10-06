@@ -14,6 +14,10 @@ return new class extends Migration
      */
     public function up()
     {
+        echo "⚠️ Complex database setup migration disabled - using simple migration instead\n";
+        echo "⚠️ This migration is skipped to prevent transaction failures\n";
+        return;
+
         echo "🛡️ StudentLink Safe Database Setup\n";
         echo "==================================\n\n";
 
@@ -61,7 +65,7 @@ return new class extends Migration
                     $table->string('personal_email')->nullable(); // Personal email for students
                     $table->timestamp('email_verified_at')->nullable();
                     $table->string('password');
-                    $table->enum('role', ['student', 'department_head', 'admin'])->default('student');
+                    $table->enum('role', ['student', 'department_head', 'admin', 'staff'])->default('student');
                     $table->unsignedBigInteger('department_id')->nullable();
                     $table->string('phone')->nullable();
                     $table->string('avatar')->nullable();
@@ -77,18 +81,15 @@ return new class extends Migration
                     $table->index('student_id');
                     $table->index('employee_id');
                     $table->index(['is_active', 'role']);
+                    
+                    // Add foreign key constraint inline (safer for PostgreSQL)
+                    try {
+                        $table->foreign('department_id')->references('id')->on('departments')->onDelete('set null');
+                    } catch (Exception $e) {
+                        echo "   ⚠️ Could not add foreign key constraint: " . $e->getMessage() . "\n";
+                    }
                 });
                 echo "   ✅ Created table: users\n";
-                
-                // Add foreign key constraint only if departments table exists
-                if (Schema::hasTable('departments')) {
-                    Schema::table('users', function ($table) {
-                        $table->foreign('department_id')->references('id')->on('departments')->onDelete('set null');
-                    });
-                    echo "   ✅ Added foreign key constraint: users.department_id -> departments.id\n";
-                } else {
-                    echo "   ⚠️ Departments table not found, skipping foreign key constraint\n";
-                }
             } else {
                 echo "   ⚠️ Table 'users' already exists, checking for missing columns...\n";
                 
