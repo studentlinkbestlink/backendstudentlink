@@ -56,6 +56,12 @@ class LocalUsersSeeder extends Seeder
         ];
 
         foreach ($departmentHeads as $user) {
+            // Check if user already exists
+            if (User::where('email', $user['email'])->exists()) {
+                $this->command->warn("User with email '{$user['email']}' already exists. Skipping...");
+                continue;
+            }
+
             // Find department by code
             $department = $departments->where('code', $user['department_code'])->first();
             
