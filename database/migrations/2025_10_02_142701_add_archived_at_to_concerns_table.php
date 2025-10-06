@@ -11,8 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Check if concerns table exists before trying to modify it
+        if (!Schema::hasTable('concerns')) {
+            echo "⚠️ Concerns table does not exist. Skipping archived_at migration.\n";
+            return;
+        }
+
         Schema::table('concerns', function (Blueprint $table) {
-            $table->timestamp('archived_at')->nullable()->after('disputed_at');
+            if (!Schema::hasColumn('concerns', 'archived_at')) {
+                $table->timestamp('archived_at')->nullable()->after('disputed_at');
+            }
         });
     }
 

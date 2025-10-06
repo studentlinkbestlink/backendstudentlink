@@ -11,11 +11,22 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Check if users table exists before creating tables with foreign keys
+        if (!Schema::hasTable('users')) {
+            echo "⚠️ Users table does not exist. Skipping AI tables migration.\n";
+            return;
+        }
+
         // AI Chat Messages table - only create if it doesn't exist
         if (!Schema::hasTable('ai_chat_messages')) {
             Schema::create('ai_chat_messages', function (Blueprint $table) {
                 $table->id();
-                $table->foreignId('session_id')->constrained('ai_chat_sessions')->onDelete('cascade');
+                // Only add foreign key if ai_chat_sessions table exists
+                if (Schema::hasTable('ai_chat_sessions')) {
+                    $table->foreignId('session_id')->constrained('ai_chat_sessions')->onDelete('cascade');
+                } else {
+                    $table->unsignedBigInteger('session_id');
+                }
                 $table->enum('role', ['user', 'assistant', 'system']);
                 $table->text('content');
                 $table->string('service')->default('huggingface'); // huggingface, dialogflow, fallback

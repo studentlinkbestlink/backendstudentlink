@@ -11,9 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Check if users table exists before trying to modify it
+        if (!Schema::hasTable('users')) {
+            echo "⚠️ Users table does not exist. Skipping cross department capability migration.\n";
+            return;
+        }
+
         Schema::table('users', function (Blueprint $table) {
-            $table->boolean('can_handle_cross_department')->default(false)->after('is_active');
-            $table->string('title')->nullable()->after('can_handle_cross_department');
+            if (!Schema::hasColumn('users', 'can_handle_cross_department')) {
+                $table->boolean('can_handle_cross_department')->default(false)->after('is_active');
+            }
+            if (!Schema::hasColumn('users', 'title')) {
+                $table->string('title')->nullable()->after('can_handle_cross_department');
+            }
         });
     }
 

@@ -11,11 +11,23 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Check if training_data table exists before trying to modify it
+        if (!Schema::hasTable('training_data')) {
+            echo "⚠️ Training_data table does not exist. Skipping column length update migration.\n";
+            return;
+        }
+
         Schema::table('training_data', function (Blueprint $table) {
-            // Update column lengths to handle longer text
-            $table->text('user_message')->nullable()->change();
-            $table->text('assistant_response')->nullable()->change();
-            $table->text('information')->nullable()->change();
+            // Update column lengths to handle longer text (only if columns exist)
+            if (Schema::hasColumn('training_data', 'user_message')) {
+                $table->text('user_message')->nullable()->change();
+            }
+            if (Schema::hasColumn('training_data', 'assistant_response')) {
+                $table->text('assistant_response')->nullable()->change();
+            }
+            if (Schema::hasColumn('training_data', 'information')) {
+                $table->text('information')->nullable()->change();
+            }
         });
     }
 

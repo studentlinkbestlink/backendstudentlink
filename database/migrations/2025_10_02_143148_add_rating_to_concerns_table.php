@@ -11,8 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Check if concerns table exists before trying to modify it
+        if (!Schema::hasTable('concerns')) {
+            echo "⚠️ Concerns table does not exist. Skipping rating migration.\n";
+            return;
+        }
+
         Schema::table('concerns', function (Blueprint $table) {
-            $table->tinyInteger('rating')->nullable()->after('archived_at')->comment('Student rating from 1-5 stars');
+            if (!Schema::hasColumn('concerns', 'rating')) {
+                $table->tinyInteger('rating')->nullable()->after('archived_at')->comment('Student rating from 1-5 stars');
+            }
         });
     }
 
