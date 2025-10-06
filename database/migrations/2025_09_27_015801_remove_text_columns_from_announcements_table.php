@@ -11,14 +11,32 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Check if announcements table exists before trying to modify it
+        if (!Schema::hasTable('announcements')) {
+            echo "⚠️ Announcements table does not exist. Skipping text columns removal migration.\n";
+            return;
+        }
+
         Schema::table('announcements', function (Blueprint $table) {
-            // Remove text-based columns that are no longer needed
-            $table->dropColumn([
-                'content',
-                'excerpt', 
-                'featured_image',
-                'announcement_type' // Since all announcements are now image-only
-            ]);
+            // Remove text-based columns that are no longer needed (only if they exist)
+            $columnsToDrop = [];
+            
+            if (Schema::hasColumn('announcements', 'content')) {
+                $columnsToDrop[] = 'content';
+            }
+            if (Schema::hasColumn('announcements', 'excerpt')) {
+                $columnsToDrop[] = 'excerpt';
+            }
+            if (Schema::hasColumn('announcements', 'featured_image')) {
+                $columnsToDrop[] = 'featured_image';
+            }
+            if (Schema::hasColumn('announcements', 'announcement_type')) {
+                $columnsToDrop[] = 'announcement_type';
+            }
+            
+            if (!empty($columnsToDrop)) {
+                $table->dropColumn($columnsToDrop);
+            }
         });
     }
 

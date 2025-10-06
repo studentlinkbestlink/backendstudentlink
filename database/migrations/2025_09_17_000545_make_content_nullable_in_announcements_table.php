@@ -11,6 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Check if announcements table exists before trying to modify it
+        if (!Schema::hasTable('announcements')) {
+            echo "⚠️ Announcements table does not exist. Skipping content nullable migration.\n";
+            return;
+        }
+
         Schema::table('announcements', function (Blueprint $table) {
             // Make content column nullable if it exists and is not already nullable
             if (Schema::hasColumn('announcements', 'content')) {
