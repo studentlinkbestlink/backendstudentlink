@@ -78,3 +78,4 @@ class LocalUsersSeeder extends Seeder
         $this->command->info('📝 Note: Staff members will be created by StaffSeeder');
     }
 }
+

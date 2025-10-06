@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: studentlink-backend
+    env: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: oregon
+    branch: master
+    healthCheckPath: /healthz
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: LOG_CHANNEL
+        value: null
+      - key: LOG_LEVEL
+        value: error
