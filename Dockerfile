@@ -24,8 +24,11 @@ WORKDIR /var/www/html
 RUN composer create-project laravel/laravel temp-laravel --prefer-dist --no-dev --no-interaction
 RUN cp -r temp-laravel/* . && rm -rf temp-laravel
 
-# Install JWT package during build - this is critical
-RUN COMPOSER_ALLOW_SUPERUSER=1 composer require tymon/jwt-auth --ignore-platform-reqs --no-interaction
+# Copy composer files and install ALL dependencies
+COPY composer.json composer.lock* ./
+
+# Install ALL dependencies including JWT and Spatie packages
+RUN COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --ignore-platform-reqs --no-interaction
 
 # Copy only essential application files
 COPY app/ app/
