@@ -34,10 +34,19 @@ return new class extends Migration
                 }
             });
 
-            // Update the status enum to include approved and rejected
+            // Update the status enum to include approved and rejected (database-agnostic)
             // Only if the table exists and has the status column
             if (Schema::hasColumn('concerns', 'status')) {
-                DB::statement("ALTER TABLE concerns MODIFY COLUMN status ENUM('pending', 'approved', 'rejected', 'in_progress', 'resolved', 'closed', 'cancelled') DEFAULT 'pending'");
+                $driver = DB::getDriverName();
+                
+                if ($driver === 'mysql') {
+                    DB::statement("ALTER TABLE concerns MODIFY COLUMN status ENUM('pending', 'approved', 'rejected', 'in_progress', 'resolved', 'closed', 'cancelled') DEFAULT 'pending'");
+                } elseif ($driver === 'pgsql') {
+                    // PostgreSQL: Update constraint
+                    DB::statement("ALTER TABLE concerns DROP CONSTRAINT IF EXISTS concerns_status_check");
+                    DB::statement("ALTER TABLE concerns ADD CONSTRAINT concerns_status_check CHECK (status IN ('pending', 'approved', 'rejected', 'in_progress', 'resolved', 'closed', 'cancelled'))");
+                    DB::statement("ALTER TABLE concerns ALTER COLUMN status SET DEFAULT 'pending'");
+                }
             }
         }
     }
@@ -54,7 +63,16 @@ return new class extends Migration
             $table->dropColumn(['rejection_reason', 'approved_at', 'rejected_at', 'approved_by', 'rejected_by']);
         });
 
-        // Revert the status enum
-        DB::statement("ALTER TABLE concerns MODIFY COLUMN status ENUM('pending', 'in_progress', 'resolved', 'closed', 'cancelled') DEFAULT 'pending'");
+        // Revert the status enum (database-agnostic)
+        $driver = DB::getDriverName();
+        
+        if ($driver === 'mysql') {
+            DB::statement("ALTER TABLE concerns MODIFY COLUMN status ENUM('pending', 'in_progress', 'resolved', 'closed', 'cancelled') DEFAULT 'pending'");
+        } elseif ($driver === 'pgsql') {
+            // PostgreSQL: Update constraint
+            DB::statement("ALTER TABLE concerns DROP CONSTRAINT IF EXISTS concerns_status_check");
+            DB::statement("ALTER TABLE concerns ADD CONSTRAINT concerns_status_check CHECK (status IN ('pending', 'in_progress', 'resolved', 'closed', 'cancelled'))");
+            DB::statement("ALTER TABLE concerns ALTER COLUMN status SET DEFAULT 'pending'");
+        }
     }
 };
