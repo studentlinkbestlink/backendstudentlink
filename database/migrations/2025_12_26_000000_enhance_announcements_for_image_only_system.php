@@ -11,6 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Check if announcements table exists before trying to modify it
+        if (!Schema::hasTable('announcements')) {
+            echo "⚠️ Announcements table does not exist. Skipping announcements enhancement migration.\n";
+            return;
+        }
+
         Schema::table('announcements', function (Blueprint $table) {
             // Analytics fields
             $table->integer('download_count')->default(0)->after('view_count');

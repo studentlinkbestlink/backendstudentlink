@@ -11,11 +11,23 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Check if announcements table exists before trying to modify it
+        if (!Schema::hasTable('announcements')) {
+            echo "⚠️ Announcements table does not exist. Skipping text fields nullable migration.\n";
+            return;
+        }
+
         Schema::table('announcements', function (Blueprint $table) {
-            // Make text-based fields nullable for image-only announcements
-            $table->string('title')->nullable()->change();
-            $table->string('type')->nullable()->change();
-            $table->string('priority')->nullable()->change();
+            // Make text-based fields nullable for image-only announcements (only if they exist)
+            if (Schema::hasColumn('announcements', 'title')) {
+                $table->string('title')->nullable()->change();
+            }
+            if (Schema::hasColumn('announcements', 'type')) {
+                $table->string('type')->nullable()->change();
+            }
+            if (Schema::hasColumn('announcements', 'priority')) {
+                $table->string('priority')->nullable()->change();
+            }
         });
     }
 

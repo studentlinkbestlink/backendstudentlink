@@ -11,8 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Check if announcements table exists before trying to modify it
+        if (!Schema::hasTable('announcements')) {
+            echo "⚠️ Announcements table does not exist. Skipping internal title migration.\n";
+            return;
+        }
+
         Schema::table('announcements', function (Blueprint $table) {
-            $table->string('internal_title')->nullable()->after('author_id');
+            if (!Schema::hasColumn('announcements', 'internal_title')) {
+                $table->string('internal_title')->nullable()->after('author_id');
+            }
         });
     }
 
