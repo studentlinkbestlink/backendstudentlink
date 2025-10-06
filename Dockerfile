@@ -24,11 +24,8 @@ WORKDIR /var/www/html
 RUN composer create-project laravel/laravel temp-laravel --prefer-dist --no-dev --no-interaction
 RUN cp -r temp-laravel/* . && rm -rf temp-laravel
 
-# Copy composer.json only (no lock file to avoid version conflicts)
-COPY composer.json ./
-
-# Install ALL dependencies - let Composer resolve versions fresh
-RUN COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --ignore-platform-reqs --no-interaction
+# Install only the essential packages we need for migrations
+RUN COMPOSER_ALLOW_SUPERUSER=1 composer require tymon/jwt-auth spatie/laravel-permission twilio/sdk --ignore-platform-reqs --no-interaction
 
 # Copy only essential application files
 COPY app/ app/
