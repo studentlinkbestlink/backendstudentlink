@@ -18,10 +18,16 @@ return new class extends Migration
         echo "==================================\n\n";
 
         try {
-            // Disable foreign key checks during setup
-            DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+            // Disable foreign key checks during setup (database-agnostic)
+            $driver = DB::getDriverName();
+            if ($driver === 'mysql') {
+                DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+            } elseif ($driver === 'pgsql') {
+                DB::statement('SET session_replication_role = replica;');
+            }
             
-            echo "📋 Checking and creating missing tables...\n\n";
+            echo "📋 Checking and creating missing tables...\n";
+            echo "   Database driver: {$driver}\n\n";
             
             // 1. DEPARTMENTS TABLE
             if (!Schema::hasTable('departments')) {
@@ -633,8 +639,13 @@ return new class extends Migration
                 echo "   ⚠️ Table 'system_settings' already exists, skipping...\n";
             }
             
-            // Re-enable foreign key checks
-            DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+            // Re-enable foreign key checks (database-agnostic)
+            $driver = DB::getDriverName();
+            if ($driver === 'mysql') {
+                DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+            } elseif ($driver === 'pgsql') {
+                DB::statement('SET session_replication_role = DEFAULT;');
+            }
             
             echo "\n📊 Database Summary...\n";
             echo "====================\n";
@@ -664,6 +675,18 @@ return new class extends Migration
         } catch (Exception $e) {
             echo "❌ Error: " . $e->getMessage() . "\n";
             echo "Stack trace:\n" . $e->getTraceAsString() . "\n";
+            
+            // Re-enable foreign key checks even if there was an error
+            try {
+                $driver = DB::getDriverName();
+                if ($driver === 'mysql') {
+                    DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+                } elseif ($driver === 'pgsql') {
+                    DB::statement('SET session_replication_role = DEFAULT;');
+                }
+            } catch (Exception $e2) {
+                echo "⚠️ Could not re-enable foreign key checks: " . $e2->getMessage() . "\n";
+            }
         }
     }
 
